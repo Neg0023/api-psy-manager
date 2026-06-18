@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: psy-manager-backend
+
+  datasource:
+    # Ex.: jdbc:postgresql://<host>.neon.tech/<db>?sslmode=require
+    url: ${DATABASE_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    # O schema é gerenciado pelo Flyway; o Hibernate apenas valida o mapeamento.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # ID Token do Google é um JWT assinado; validação via JWKS do issuer.
+          issuer-uri: https://accounts.google.com
+
+# Configurações específicas da aplicação
+app:
+  # Único e-mail autorizado a acessar o sistema (psicólogo proprietário).
+  admin-email: ${ADMIN_EMAIL}
+  # Chave AES (Base64, 32 bytes) para cifrar o refresh token do Google em repouso.
+  encryption-key: ${APP_ENCRYPTION_KEY:}
+  # Origem do frontend liberada no CORS.
+  cors:
+    allowed-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  google:
+    # Client ID do OAuth (audiência esperada do ID Token).
+    client-id: ${GOOGLE_CLIENT_ID}
+    # Client secret do OAuth (necessário para o fluxo da Forms API).
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+    # URI de callback registrada no Google Cloud Console.
+    redirect-uri: ${GOOGLE_OAUTH_REDIRECT_URI:http://localhost:8080/api/integrations/google/callback}
+
+logging:
+  level:
+    org.flywaydb: INFO
