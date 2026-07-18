@@ -80,12 +80,17 @@ public class SecurityConfig {
         return converter;
     }
 
+    /**
+     * Fonte única de configuração de CORS, injetada no filter chain do Spring Security.
+     * Origens vêm de {@code app.cors.allowed-origins} (env {@code APP_CORS_ALLOWED_ORIGINS}).
+     * Sem curinga em origens porque a SPA envia credenciais (header {@code Authorization}).
+     */
     @Bean
     CorsConfigurationSource corsConfigurationSource(AppProperties props) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(props.cors().allowedOrigin()));
+        config.setAllowedOrigins(props.cors().allowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
