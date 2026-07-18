@@ -35,9 +35,9 @@ app:
   admin-email: ${ADMIN_EMAIL}
   # Chave AES (Base64, 32 bytes) para cifrar o refresh token do Google em repouso.
   encryption-key: ${APP_ENCRYPTION_KEY:}
-  # Origem do frontend liberada no CORS.
+  # Origens do frontend liberadas no CORS (lista separada por vírgula).
   cors:
-    allowed-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
   google:
     # Client ID do OAuth (audiência esperada do ID Token).
     client-id: ${GOOGLE_CLIENT_ID}
