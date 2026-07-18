@@ -1,0 +1,52 @@
+# ---------------------------------------------------------------------------
+# Ambiente de desenvolvimento local: API + Postgres.
+#
+#   cp .env.example .env   # preencha ADMIN_EMAIL, GOOGLE_CLIENT_ID, etc.
+#   docker compose up --build
+#
+# DATABASE_URL/DB_USER/DB_PASSWORD do .env são ignorados aqui: o bloco
+# `environment` do serviço `backend` tem precedência e aponta para o Postgres
+# deste compose. Para rodar contra o Neon, use o container sozinho
+# (docker run --env-file .env) em vez deste arquivo.
+# ---------------------------------------------------------------------------
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: psymanager
+      POSTGRES_USER: psymanager
+      POSTGRES_PASSWORD: psymanager
+    ports:
+      # Exposto para inspecionar o banco pelo host (psql/DBeaver).
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U psymanager -d psymanager"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+    depends_on:
+      db:
+        # O Flyway roda no startup; sem isto a API sobe antes do banco aceitar
+        # conexões e morre no flywayInitializer.
+        condition: service_healthy
+    # Credenciais do Google, ADMIN_EMAIL, APP_ENCRYPTION_KEY e CORS vêm do .env.
+    env_file:
+      - .env
+    environment:
+      # sslmode não se aplica ao Postgres local (sem TLS), ao contrário do Neon.
+      DATABASE_URL: jdbc:postgresql://db:5432/psymanager
+      DB_USER: psymanager
+      DB_PASSWORD: psymanager
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  db-data:
